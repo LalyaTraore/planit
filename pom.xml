@@ -127,6 +127,8 @@
                 </configuration>
             </plugin> 
 		</plugins>
+		<finalName>mon-app</finalName>
+		
 	</build>
 
 </project>
