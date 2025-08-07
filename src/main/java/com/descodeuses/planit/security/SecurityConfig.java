@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,13 +20,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import jakarta.servlet.Filter;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-@Value("${allowCorsOrigin}")
-private String allowCorsOrigin;
+    @Value("${allowCorsOrigin}")
+    private String allowCorsOrigin;
+
     @Autowired
     private JwtFilter jwtFilter;
 
@@ -41,22 +40,13 @@ private String allowCorsOrigin;
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .authorizeHttpRequests(auth -> auth
-            // Routes publiques
-            .requestMatchers("/auth/**").permitAll()
-            .requestMatchers("/public/**").permitAll()
+                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/api/**").hasAnyRole("USER", "ADMIN")
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-            // DELETE uniquement pour ADMIN
-            .requestMatchers(HttpMethod.DELETE, "/api/action/**").hasAnyRole("ADMIN")
-
-            // Toutes les autres méthodes (GET, POST, PUT, etc.) sur /api/action/** : accessibles à tous
-            .requestMatchers("/api/action/**").permitAll()
-
-            // Le reste nécessite une authentification
-            .anyRequest().authenticated()
-        )
-               .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-            
-     http.addFilterBefore(jwtFilter, (Class<? extends Filter>) UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -69,8 +59,8 @@ private String allowCorsOrigin;
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(allowCorsOrigin)); 
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedOrigins(List.of(allowCorsOrigin)); // Or specify origins
+        config.setAllowedMethods(List.of("*"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 

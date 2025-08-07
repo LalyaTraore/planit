@@ -36,7 +36,14 @@ public class AuthController {
     @Autowired
     private LogDocumentService logService; // ✅ Injection correcte
 
+
+    
     // 🔐 Endpoint Login
+
+     @GetMapping("/login/hello")
+    public String sayHello() {
+        return "Hello";
+    }
     @PostMapping("/login")
 public ResponseEntity<?> login(@RequestBody AuthRequest request, HttpServletRequest httpRequest) {
     try {
